@@ -29,13 +29,37 @@
 
 // #define DEBUG_MMAP
 
-/* We aren't threadsafe to start with, so no need to worry about locking.  */
+pthread_mutex_t mmap_mutex = PTHREAD_MUTEX_INITIALIZER;
+static __thread int mmap_lock_count;
+
 void mmap_lock(void)
 {
+    if (mmap_lock_count++ == 0) {
+        pthread_mutex_lock(&mmap_mutex);
+    }
 }
 
 void mmap_unlock(void)
 {
+    if (--mmap_lock_count == 0) {
+        pthread_mutex_unlock(&mmap_mutex);
+    }
+}
+
+/* Grab lock to make sure things are in a consistent state after fork().  */
+void mmap_fork_start(void)
+{
+    if (mmap_lock_count)
+        abort();
+    pthread_mutex_lock(&mmap_mutex);
+}
+
+void mmap_fork_end(int child)
+{
+    if (child)
+        pthread_mutex_init(&mmap_mutex, NULL);
+    else
+        pthread_mutex_unlock(&mmap_mutex);
 }
 
 /* NOTE: all the constants are the HOST ones, but addresses are target. */

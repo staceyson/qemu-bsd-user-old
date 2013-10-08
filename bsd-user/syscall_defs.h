@@ -642,11 +642,7 @@ typedef struct {
 
 #define TARGET_UMTX_UNOWNED                 0x0
 #define TARGET_UMUTEX_UNOWNED               0x0
-#if TARGET_ABI_BITS == 32
-# define TARGET_UMTX_CONTESTED              0x80000000
-#else
-# define TARGET_UMTX_CONTESTED              0x8000000000000000LL
-#endif /* ! TARGET_ABI_BITS == 32 */
+#define TARGET_UMTX_CONTESTED               (abi_ulong)(-1)
 #define TARGET_UMUTEX_CONTESTED             0x80000000U
 
 /* flags for umutex */
